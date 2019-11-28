@@ -120,9 +120,21 @@
     if ([[[UIDevice currentDevice] systemVersion] compare:@"8.2" options:NSNumericSearch] == NSOrderedAscending) {
         return [NSURLCache sharedURLCache];
     }
+#if !TARGET_OS_MACCATALYST
     return [[NSURLCache alloc] initWithMemoryCapacity:20 * 1024 * 1024
                                          diskCapacity:150 * 1024 * 1024
                                              diskPath:@"com.alamofire.imagedownloader"];
+#else
+    NSString *path = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
+    if (path) {
+        path = [path stringByAppendingPathComponent:@"com.alamofire.imagedownloader"];
+        return [[NSURLCache alloc] initWithMemoryCapacity:20 * 1024 * 1024
+                                             diskCapacity:150 * 1024 * 1024
+                                             directoryURL:[NSURL fileURLWithPath:path]];
+    } else {
+        return [NSURLCache sharedURLCache];
+    }
+#endif
 }
 
 + (NSURLSessionConfiguration *)defaultURLSessionConfiguration {
